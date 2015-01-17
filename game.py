@@ -1,20 +1,19 @@
 import pygame, sys
 import random
 from pygame.locals import *
-from objects import Bird, Pipe
+from objects import Bird, Pipe, Top, Bottom
 
 
 pygame.init()
 pygame.display.set_caption('Flappy Bird')
 
 #music
-mario = pygame.mixer.music.load('supermario.mp3')
-pygame.mixer.music.play(-1, 0.0)
+#mario = pygame.mixer.music.load('supermario.mp3')
+#pygame.mixer.music.play(-1, 0.0)
 
 #clock
 clock = pygame.time.Clock()
 time_pipe1 = 0
-time_pipe2 = 0
 
 
 background = pygame.image.load('background.png')
@@ -25,16 +24,19 @@ surface = pygame.display.set_mode(background_size)
 surface.blit(background, (0,0))
 
 #groups
-pipegroup = pygame.sprite.Group()
+pipes = pygame.sprite.Group()
 
 #initialize objects
 
+position = random.randint(-275,-50)
 bird = Bird()
-pipe1 = Pipe(350, random.randint(-150, 0))
-pipe2 = Pipe(550, random.randint(-150, 0))
+top = Top(350, position)
+bottom = Bottom(350, position+410)
 
-def checkCollision(obj1, obj2):
-	return obj1.rect.colliderect(obj2.rect)
+pipes.add(top, bottom)
+
+def checkCollision(obj1, obj2, obj3):
+	return pygame.sprite.collide_rect(obj1, obj2) or pygame.sprite.collide_rect(obj1, obj3)
 
 #game loop
 while True:
@@ -42,33 +44,36 @@ while True:
 		if event.type == QUIT:
 			pygame.quit()
 			sys.exit()
+		if event.type == pygame.KEYDOWN and bird.alive:
+			if event.key == K_SPACE:
+				bird.up()
+
+
 
 	dt = clock.tick()
 	time_pipe1 += dt
-	time_pipe2 += dt
 
-	if time_pipe1 > 3500:
-		pipe1.reset()
+	if time_pipe1 > 3500 and bird.alive:
+		position = random.randint(-275, -50)
+		top.reset(y=position)
+		bottom.reset(y=position+410)
 		time_pipe1 = 0
 
-	if time_pipe2 > 4800:
-		pipe2.reset(525)
-		time_pipe2 = 0
+	
+	bird.check_fly()
 
-	bird.move()
-	pipe1.move()
-	pipe2.move()
+	if bird.alive:
+		top.move()
+		bird.down()
+		bottom.move()
 
-	collision = checkCollision(bird, pipe1)
 
-	if collision:
-		print('crash')
-
+	collision = checkCollision(bird, top, bottom)
+	bird.die(collision)
 
 	surface.blit(background, (0,0))
 
-	bird.draw(surface, collision)
-	pipe1.draw(surface)
-	pipe2.draw(surface)
+	bird.draw(surface)
+	pipes.draw(surface)
 
 	pygame.display.update()
