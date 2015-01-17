@@ -29,14 +29,15 @@ class Bird(pygame.sprite.Sprite):
 			self.alive = False
 			self.image = self.img_dead
 			if self.y <= 410:
-				self.y += 1
+				self.y += 1.5
 			else:
 				mainloop = False
 				menu()
 
-	def check_fly(self):
+	def check_fly(self, menu):
 		if self.y > 410:
 			self.alive = False
+			menu()
 
 	def up(self):
 		"""More Bird with space bar"""

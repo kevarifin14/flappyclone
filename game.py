@@ -40,7 +40,7 @@ def text_objects(text, font):
 	textSurface = font.render(text, True, black)
 	return textSurface, textSurface.get_rect()
 
-def button(action, msg,x,y,w,h,i,a):
+def button(action,msg,x,y,w,h,i,a):
 	"""
 	Takes in button action and message along with dimension
 	to create an interative button
@@ -50,8 +50,12 @@ def button(action, msg,x,y,w,h,i,a):
 
 	if x+w > mouse[0] > x and y+h > mouse[1] > y:
 		pygame.draw.rect(surface, a, (x,y,w,h))
-		if click[0] == 1 and (action == "play" or action == "reset"):
-			game_loop()
+		if click[0] == 1:
+			if action == "start":
+				game_loop()
+			elif action == "reset":
+				setup()
+				game_loop()
 	else:
 		pygame.draw.rect(surface, i, (x,y,w,h))
 
@@ -73,14 +77,13 @@ def game_intro():
 		TextRect.center = ((350/2),(450/2))
 		surface.blit(TextSurf, TextRect)
 
-		button("play", "Start", 50,365,100,40,green,bright_green)
+		button("start","Start",50,365,100,40,green,bright_green)
 
 		pygame.display.update()
 
 def game_end():
 
 	stop = True
-	reset_variables()
 
 	while stop:
 		for event in pygame.event.get():
@@ -92,10 +95,11 @@ def game_end():
 
 		pygame.display.update()
 
-def reset_variables():
-	bird.alive = True
-
 def cycle_pipes(top, bottom):
+	"""
+	Checks if pipes have reached the end of the screen
+	and if so it moves them back to the beginning position
+	"""
 	if top.x == -53 and bottom.x == -53:
 		position = random.randint(-275, -50)
 		top.reset(y=position)
@@ -118,7 +122,7 @@ def game_loop():
 		cycle_pipes(top2, bottom2)
 
 		#check if bird is still flappin'
-		bird.check_fly()
+		bird.check_fly(game_end)
 
 		#move birdy if it's alive
 		if bird.alive:
