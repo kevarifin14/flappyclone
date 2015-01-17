@@ -2,6 +2,7 @@ import pygame
 import random
 import time
 
+
 class Bird(pygame.sprite.Sprite):
 
 	def __init__(self):
@@ -23,12 +24,15 @@ class Bird(pygame.sprite.Sprite):
 		self.rect.width -= 10
 		self.rect.height -= 10
 
-	def die(self, collision):
+	def die(self, collision, menu, mainloop):
 		if collision:
 			self.alive = False
 			self.image = self.img_dead
 			if self.y <= 410:
 				self.y += 1
+			else:
+				mainloop = False
+				menu()
 
 	def check_fly(self):
 		if self.y > 410:
@@ -67,7 +71,7 @@ class Pipe(pygame.sprite.Sprite):
 	def move(self):
 		"""Moves pipe across screen"""
 		self.x -= 1
-		self.rect.x -=1
+		self.rect.x -= 1
 
 	def draw(self, surface):
 		"""Draw pipe on surface"""
