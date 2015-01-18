@@ -1,11 +1,19 @@
-import pygame, sys
-import random
+import pygame, sys, random, pyganim
 from pygame.locals import *
 from objects import Bird, Pipe, Top, Bottom
 
 pygame.init()
 pygame.display.set_caption('Flappy Bird')
 
+#images
+bird_img0 = pygame.image.load('flappy.gif')
+bird_img1 = pygame.transform.rotate(bird_img0, 5)
+bird_img2 = pygame.transform.rotate(bird_img0, 10)
+bird_img3 = pygame.transform.rotate(bird_img0, 15)
+
+#animation
+animBird = pyganim.PygAnimation([(bird_img0,0.2),(bird_img1,0.2),(bird_img2,0.2),(bird_img3,0.2)])
+animBird.play()
 
 #colors
 black = (0,0,0)
@@ -19,7 +27,7 @@ smallText = pygame.font.Font('freesansbold.ttf', 20)
 
 def setup():
 	"""Initialize game variable"""
-	global pipes, bird, top, bottom, top2, bottom2, pause
+	global score,pipes, bird, top, bottom, top2, bottom2
 		
 	# objects
 	position = random.randint(-275,-50)
@@ -29,11 +37,11 @@ def setup():
 	position2 = random.randint(-275,-50)
 	top2 = Top(350, position)
 	bottom2 = Bottom(350, position+440)
-	pause = True
 
 	#groups
 	pipes = pygame.sprite.Group()
 	pipes.add(top, bottom, top2, bottom2)
+	score = 0
 
 def text_objects(text, font):
 	"""Creates text objects"""
@@ -100,14 +108,27 @@ def cycle_pipes(top, bottom):
 	Checks if pipes have reached the end of the screen
 	and if so it moves them back to the beginning position
 	"""
+	global score
 	if top.x == -53 and bottom.x == -53:
 		position = random.randint(-275, -50)
 		top.reset(y=position)
 		bottom.reset(y=position+440)
+		score += 1
+
+def refresh_display():
+	surface.blit(background, (0,0))
+	pipes.draw(surface)		
+	bird.draw(surface)
+
+	scoreSurf, scoreRect = text_objects(str(score), smallText)
+	scoreRect.center = ((175), 10)
+	surface.blit(scoreSurf, scoreRect)
+
 
 def game_loop():
 	mainloop = True
 	pause = True
+	score = 1
 	while mainloop:
 		for event in pygame.event.get():
 			if event.type == QUIT:
@@ -116,6 +137,7 @@ def game_loop():
 			if event.type == pygame.KEYDOWN and bird.alive:
 				if event.key == K_SPACE:
 					bird.up()
+					pygame.display.update()
 
 		#reset pipes
 		cycle_pipes(top, bottom)
@@ -136,14 +158,14 @@ def game_loop():
 			bird.down()
 
 		#check if bird hit a pipe
-		collision = checkCollision(bird, top, bottom)
+		collision = checkCollision(bird, top, bottom) or checkCollision(bird, top2, bottom2)
 		#collision = False
-		bird.die(collision,game_end,mainloop)
+		bird.die(surface,collision,game_end,mainloop)
+
+
 
 		#redraw background and objects
-		surface.blit(background, (0,0))
-		bird.draw(surface)
-		pipes.draw(surface)
+		refresh_display()
 
 		pygame.display.update()
 
@@ -161,6 +183,7 @@ background_rect = background.get_rect()
 
 surface = pygame.display.set_mode(background_size)
 surface.blit(background, (0,0))
+
 
 setup()
 game_intro()
